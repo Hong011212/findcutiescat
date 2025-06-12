@@ -1,24 +1,50 @@
-// src/components/CatCard.tsx
-import { motion } from 'framer-motion';
-import React from 'react';
+import React, { useState } from 'react'
+import { motion } from 'framer-motion'
+import type { CatData } from '../hooks/useCats'
 
 interface Props {
-  url: string;
-  onSwipe: (direction: 'left' | 'right') => void;
+  cat: CatData
+  onSwipe: (dir: 'left' | 'right') => void
 }
 
-export const CatCard: React.FC<Props> = ({ url, onSwipe }) => {
+export const CatCard: React.FC<Props> = ({ cat, onSwipe }) => {
+  const [dragOffset, setDragOffset] = useState(0)
+  const [dragging, setDragging]     = useState(false)
+
+  const showLove = dragOffset > 75
+  const showNope = dragOffset < -75
+
   return (
     <motion.div
+      className={`card${dragging ? ' dragging' : ''}`}
       drag="x"
-      dragConstraints={{ left: 0, right: 0 }}
+      dragConstraints={{ left: 50, right: 50 }}
+      dragElastic={0.3}
+      onDragStart={() => setDragging(true)}
+      onDrag={(_, info) => setDragOffset(info.offset.x)}
       onDragEnd={(_, info) => {
-        const dir = info.point.x > 100 ? 'right' : info.point.x < -100 ? 'left' : null;
-        if (dir) onSwipe(dir);
+        setDragging(false)
+        setDragOffset(0)
+        const dir =
+          info.offset.x > 100  ? 'right'
+          : info.offset.x < -100 ? 'left'
+          : null
+        if (dir) onSwipe(dir)
       }}
-      className="absolute w-80 h-96 rounded-2xl shadow-lg bg-gray-100 overflow-hidden"
     >
-      <img src={url} alt="cute cat" className="object-cover w-full h-full" />
+
+      <div className="icon nope" style={{ opacity: showNope ? 1 : 0 }} />
+      <div className="icon love"  style={{ opacity: showLove ? 1 : 0 }} />
+
+
+      <img src={cat.url} alt="Cuties cat" draggable={false} />
+
+
+      <div className="caption">
+        {cat.tags && cat.tags.length > 0
+          ? `Tags: ${cat.tags.join(', ')}`
+          : 'Tags: - '}
+      </div>
     </motion.div>
-  );
-};
+  )
+}

@@ -1,23 +1,69 @@
-// src/components/SummaryModal.tsx
-import React from 'react';
+import React, { useState } from 'react'
+import type { CatData } from '../hooks/useCats'
+import { motion, AnimatePresence } from 'framer-motion'
 
-interface Props { liked: string[]; onReset: () => void }
+interface Props {
+  liked: CatData[]
+  onReset: () => void
+}
 
-export const SummaryModal: React.FC<Props> = ({ liked, onReset }) => (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center p-4">
-    <div className="bg-white rounded-lg p-6 max-w-md w-full">
-      <h2 className="text-2xl mb-4">You liked {liked.length} cats!</h2>
-      <div className="grid grid-cols-2 gap-2">
-        {liked.map((url) => (
-          <img key={url} src={url} className="w-full h-32 object-cover rounded" />
-        ))}
+export const SummaryModal: React.FC<Props> = ({ liked, onReset }) => {
+  const [lightboxUrl, setLightboxUrl] = useState<string>('')
+
+  return (
+    <div className="summary-container">
+      <div className="summary-inner">
+        <div className="summary-header">
+          <h2>
+            You chose {liked.length} cuties cat
+            {liked.length !== 1 ? 's' : ''} !
+          </h2>
+          <button className="reset-button" onClick={onReset}>
+            ← Try Again
+          </button>
+        </div>
+
+        <div className="gallery-grid">
+          {liked.map(cat => (
+            <motion.div
+              key={cat.id}
+              className="gallery-card"
+              layout
+              whileHover={{ scale: 1.03 }}
+              onClick={() => setLightboxUrl(cat.url)}
+            >
+              <img src={cat.url} alt={`Cat ${cat.id}`} />
+              <div className="card-overlay">
+                <p className="caption">
+                  {cat.tags?.length
+                    ? `Tags: ${cat.tags.join(', ')}`
+                    : `ID: ${cat.id}`}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        <AnimatePresence>
+          {lightboxUrl && (
+            <motion.div
+              className="lightbox"
+              onClick={() => setLightboxUrl('')}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.img
+                src={lightboxUrl}
+                alt="Enlarged cat"
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.8 }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-      <button
-        onClick={onReset}
-        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-      >
-        Try Again
-      </button>
     </div>
-  </div>
-);
+  )
+}

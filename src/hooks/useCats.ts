@@ -1,24 +1,66 @@
-// src/hooks/useCats.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'
 
-export function useCats(count: number) {
-  const [urls, setUrls] = useState<string[]>([]);
+export interface CatData {
+  id: string
+  url: string
+  createdAt?: string
+  tags?: string[]
+}
+
+
+export function useCats(
+  count: number,
+  initialBatch = 5,     
+  cardWidth = 320      
+): { cats: CatData[]; loading: boolean } {
+  const [cats, setCats]       = useState<CatData[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+
   useEffect(() => {
-    let mounted = true;
-    async function load() {
-      const ids = await Promise.all(
-        Array.from({ length: count }).map(async () => {
-          const res = await fetch('https://cataas.com/cat?json=true');
-          const { id } = await res.json();
-          return id as string;
+    let mounted = true
+
+    async function loadBatch(_offset: number, length: number) {
+      const results = await Promise.all(
+        Array.from({ length }).map(async (_) => {
+          const meta = await fetch('https://cataas.com/cat?json=true').then(r => r.json())
+          const url = `https://cataas.com/cat/${meta.id}?width=${cardWidth}`
+          await new Promise<void>(resolve => {
+            const img = new Image()
+            img.src    = url
+            img.onload = () => resolve()
+            img.onerror= () => resolve()
+          })
+
+          return {
+            id:        meta.id,
+            url,
+            createdAt: meta.created_at,
+            tags:      meta.tags,
+          } as CatData
         })
-      );
-      if (mounted) {
-        setUrls(ids.map(id => `https://cataas.com/cat/${id}`));
-      }
+      )
+      return results
     }
-    load();
-    return () => { mounted = false; };
-  }, [count]);
-  return urls;
+
+
+    ;(async () => {
+      const firstCount = Math.min(initialBatch, count)
+      const firstBatch = await loadBatch(0, firstCount)
+      if (!mounted) return
+      setCats(firstBatch)
+      setLoading(false)
+
+      if (firstCount < count) {
+        const restBatch = await loadBatch(firstCount, count - firstCount)
+        if (!mounted) return
+        setCats(current => [...current, ...restBatch])
+      }
+    })()
+
+    return () => {
+      mounted = false
+    }
+  }, [count, initialBatch, cardWidth])
+
+  return { cats, loading }
 }
