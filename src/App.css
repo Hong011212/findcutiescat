@@ -12,7 +12,7 @@ body
   width: 100vw;
   height: 80vh;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 .background {
   position: fixed;
@@ -26,17 +26,35 @@ body
   z-index: 10;
 }
 
+/* Prevent the page from scrolling vertically while swiping cat card */
+.stack-wrapper,
+.card-stack,
+.card {
+  touch-action: pan-x;
+  overscroll-behavior-y: contain;
+}
 
 .walking-cat {
-  position: fixed;  
+  position: fixed;
   bottom: 0;
-  left: 0;          
+  left: 0;
   width: 12vw;
   height: 10vh;
   background: url('/assets/walking-cat.gif') no-repeat center bottom;
   background-size: contain;
-  animation: walk-across 30s linear infinite;
-  z-index: 5;       
+
+  /* enable walking cat animation work in both mobile and destop*/
+  -webkit-animation: walk-across 30s linear infinite;
+          animation: walk-across 30s linear infinite;
+
+  z-index: 5;
+}
+
+@-webkit-keyframes walk-across {
+  0%   { -webkit-transform: translateX(-150px) scaleX(1); transform: translateX(-150px) scaleX(1); }
+  50%  { -webkit-transform: translateX(calc(100vw + 150px)) scaleX(1); transform: translateX(calc(100vw + 150px)) scaleX(1); }
+  50.1%{ -webkit-transform: translateX(calc(100vw + 150px)) scaleX(-1); transform: translateX(calc(100vw + 150px)) scaleX(-1); }
+  100% { -webkit-transform: translateX(-150px) scaleX(-1); transform: translateX(-150px) scaleX(-1); }
 }
 
 @keyframes walk-across {

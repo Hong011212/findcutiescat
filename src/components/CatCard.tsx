@@ -19,6 +19,7 @@ export const CatCard: React.FC<Props> = ({ cat, onSwipe }) => {
       className={`card${dragging ? ' dragging' : ''}`}
       drag="x"
       dragConstraints={{ left: 50, right: 50 }}
+      dragDirectionLock={true}  
       dragElastic={0.3}
       onDragStart={() => setDragging(true)}
       onDrag={(_, info) => setDragOffset(info.offset.x)}
@@ -31,6 +32,7 @@ export const CatCard: React.FC<Props> = ({ cat, onSwipe }) => {
           : null
         if (dir) onSwipe(dir)
       }}
+      style={{ touchAction: 'pan-x' }} 
     >
 
       <div className="icon nope" style={{ opacity: showNope ? 1 : 0 }} />
